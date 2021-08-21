@@ -110,7 +110,7 @@ class HabitViewController: UIViewController {
         timeSelectedLabel.text = formatter.string(from: timePicker.date)
     }
     
-    private let removeButton: UIButton = {
+    private let removeHabitButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = .white
         button.setTitle("Удалить привычку", for: .normal)
@@ -195,7 +195,7 @@ class HabitViewController: UIViewController {
         
         view.addSubview(scrollView)
         scrollView.addSubview(habitView)
-        habitView.addSubviews(nameLabel, habitTextfield, colorLabel, colorButton, timeLabel, timePickerLabel, timeSelectedLabel, timePicker, removeButton)
+        habitView.addSubviews(nameLabel, habitTextfield, colorLabel, colorButton, timeLabel, timePickerLabel, timeSelectedLabel, timePicker, removeHabitButton)
         
         let constraints = [
             
@@ -237,13 +237,12 @@ class HabitViewController: UIViewController {
             
             timeSelectedLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 7),
             
-            timePicker.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 15),
+            timePicker.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 35),
             timePicker.leadingAnchor.constraint(equalTo: habitView.leadingAnchor),
             timePicker.trailingAnchor.constraint(equalTo: habitView.trailingAnchor),
             
-            removeButton.topAnchor.constraint(equalTo: timePicker.bottomAnchor, constant: 270),
-            removeButton.centerXAnchor.constraint(equalTo: habitView.centerXAnchor),
-            removeButton.bottomAnchor.constraint(equalTo: habitView.bottomAnchor)
+            removeHabitButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            removeHabitButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -18)
             
         ]
         
@@ -258,14 +257,14 @@ class HabitViewController: UIViewController {
             colorButton.backgroundColor = changedHabit.color
             timePicker.date = changedHabit.date
             navigationItem.title = "Править"
-            removeButton.isHidden = false
+            removeHabitButton.isHidden = false
         }
         else {
             habitTextfield.text  = ""
             colorButton.backgroundColor = UIColor.orangeTheme
             timePicker.date = Date()
             navigationItem.title = "Создать"
-            removeButton.isHidden = true
+            removeHabitButton.isHidden = true
         }
     }
     
