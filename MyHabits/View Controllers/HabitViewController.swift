@@ -25,6 +25,29 @@ class HabitViewController: UIViewController {
         return view
     }()
     
+    private let stackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.alignment = .leading
+        stackView.distribution = .fill
+        stackView.spacing = 15
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+    
+    private func subStackView(stackView: UIStackView, title: UIView, object: UIView) {
+        let subStackView = UIStackView()
+        subStackView.axis = .vertical
+        subStackView.alignment = .leading
+        subStackView.distribution = .fill
+        subStackView.spacing = 7
+        subStackView.translatesAutoresizingMaskIntoConstraints = false
+        subStackView.addArrangedSubview(title)
+        subStackView.addArrangedSubview(object)
+        stackView.addArrangedSubview(subStackView)
+    }
+    
+    
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.text = "НАЗВАНИЕ"
@@ -33,7 +56,7 @@ class HabitViewController: UIViewController {
         return label
     }()
     
-    private let habitTextfield: UITextField = {
+    private let habitTextField: UITextField = {
         let textField = UITextField()
         textField.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         textField.textColor = .black
@@ -77,40 +100,40 @@ class HabitViewController: UIViewController {
         return label
     }()
     
+   
     private let timePickerLabel: UILabel = {
         let label = UILabel()
-        label.text = "Каждый день в "
-        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
-    private let timeSelectedLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.purpleTheme
-        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+
+   
    
     private let timePicker: UIDatePicker = {
         let picker = UIDatePicker()
         picker.preferredDatePickerStyle = .wheels
         picker.datePickerMode = .time
-        picker.addTarget(self, action: #selector (chooseTime), for: .valueChanged)
+        picker.addTarget(self, action: #selector (selectTime), for: .valueChanged)
         picker.translatesAutoresizingMaskIntoConstraints = false
         return picker
     }()
     
-    @objc func chooseTime(sender: UIDatePicker) {
+    
+    
+    @objc func selectTime(){
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         formatter.dateStyle = .none
-        
-        timeSelectedLabel.text = formatter.string(from: timePicker.date)
+        let textStr = NSMutableAttributedString(string: "Каждый день в ", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 17, weight: .regular)])
+        let selectedTime = formatter.string(from: timePicker.date)
+        let dateStr = NSAttributedString(string: selectedTime, attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 17, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.purpleTheme!])
+        textStr.append(dateStr)
+        timePickerLabel.attributedText = textStr
     }
     
-    private let removeHabitButton: UIButton = {
+    
+    
+    private let removeButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = .white
         button.setTitle("Удалить привычку", for: .normal)
@@ -144,9 +167,9 @@ class HabitViewController: UIViewController {
         super.viewDidLoad()
         editHabit()
         setupNavigation()
-        setupCurrentTime()
+        selectTime()
         setupViews()
-        habitTextfield.delegate = self
+        habitTextField.delegate = self
     }
     
     func setupNavigation() {
@@ -165,37 +188,38 @@ class HabitViewController: UIViewController {
     
     @objc func saveAndReturn() {
         if let changedHabit = self.habit {
-            changedHabit.name = habitTextfield.text ?? ""
+            changedHabit.name = habitTextField.text ?? ""
             changedHabit.date = timePicker.date
             changedHabit.color = colorButton.backgroundColor ?? .white
             HabitsStore.shared.save()
         } else {
-            let newHabit = Habit(name: habitTextfield.text ?? "",
+            let newHabit = Habit(name: habitTextField.text ?? "",
                                  date: timePicker.date,
                                  color: colorButton.backgroundColor ?? .white)
             
             let store = HabitsStore.shared
             store.habits.append(newHabit)
-            //print(store.habits.count)
+            print(store.habits.count)
         }
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: "changeTitle"), object: nil)
         self.dismiss(animated: true, completion: nil)
     }
     
-    func setupCurrentTime() {
-        let timeFormatter = DateFormatter()
-        timeFormatter.timeStyle = .short
-        timeFormatter.dateStyle = .none
-        timeSelectedLabel.text = timeFormatter.string(from: timePicker.date)
-    }
-    
+
+ 
     func setupViews() {
         
         scrollView.translatesAutoresizingMaskIntoConstraints = false
-        
         view.addSubview(scrollView)
-        scrollView.addSubview(habitView)
-        habitView.addSubviews(nameLabel, habitTextfield, colorLabel, colorButton, timeLabel, timePickerLabel, timeSelectedLabel, timePicker, removeHabitButton)
+        
+        scrollView.addSubviews(habitView, stackView, removeButton)
+        
+        subStackView(stackView: stackView, title: nameLabel, object: habitTextField)
+        subStackView(stackView: stackView, title: colorLabel, object: colorButton)
+        subStackView(stackView: stackView, title: timeLabel, object: timePickerLabel)
+        stackView.addArrangedSubview(timePicker)
+        
+        
         
         let constraints = [
             
@@ -210,39 +234,16 @@ class HabitViewController: UIViewController {
             habitView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             habitView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            nameLabel.topAnchor.constraint(equalTo: habitView.topAnchor, constant: 21),
-            nameLabel.leadingAnchor.constraint(equalTo: habitView.leadingAnchor, constant: sideInset),
-            nameLabel.trailingAnchor.constraint(equalTo: habitView.trailingAnchor, constant: -sideInset),
+            stackView.topAnchor.constraint(equalTo: habitView.topAnchor, constant: 21),
+            stackView.leadingAnchor.constraint(equalTo: habitView.leadingAnchor, constant: sideInset),
+            stackView.trailingAnchor.constraint(equalTo: habitView.trailingAnchor, constant: -sideInset),
             
-            habitTextfield.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 7),
-            habitTextfield.leadingAnchor.constraint(equalTo: habitView.leadingAnchor, constant: 15),
-            habitTextfield.trailingAnchor.constraint(equalTo: habitView.trailingAnchor, constant: -sideInset),
+            removeButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            removeButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -18),
             
-            colorLabel.topAnchor.constraint(equalTo: habitTextfield.bottomAnchor, constant: 15),
-            colorLabel.leadingAnchor.constraint(equalTo: habitView.leadingAnchor, constant: sideInset),
-            colorLabel.trailingAnchor.constraint(equalTo: habitView.trailingAnchor, constant: -sideInset),
-            
-            colorButton.topAnchor.constraint(equalTo: colorLabel.bottomAnchor, constant: 7),
-            colorButton.leadingAnchor.constraint(equalTo: habitView.leadingAnchor, constant: sideInset),
             colorButton.widthAnchor.constraint(equalToConstant: 30),
-            colorButton.heightAnchor.constraint(equalTo: colorButton.widthAnchor),
+            colorButton.heightAnchor.constraint(equalToConstant: 30)
             
-            timeLabel.topAnchor.constraint(equalTo: colorButton.bottomAnchor, constant: 15),
-            timeLabel.leadingAnchor.constraint(equalTo: habitView.leadingAnchor, constant: sideInset),
-            timeLabel.trailingAnchor.constraint(equalTo: habitView.trailingAnchor, constant: -sideInset),
-            
-            timePickerLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 7),
-            timePickerLabel.leadingAnchor.constraint(equalTo: habitView.leadingAnchor, constant: sideInset),
-            timePickerLabel.trailingAnchor.constraint(equalTo: timeSelectedLabel.leadingAnchor, constant: -1),
-            
-            timeSelectedLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 7),
-            
-            timePicker.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 35),
-            timePicker.leadingAnchor.constraint(equalTo: habitView.leadingAnchor),
-            timePicker.trailingAnchor.constraint(equalTo: habitView.trailingAnchor),
-            
-            removeHabitButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            removeHabitButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -18)
             
         ]
         
@@ -251,20 +252,20 @@ class HabitViewController: UIViewController {
     
     func editHabit() {
         if let changedHabit = habit {
-            habitTextfield.text = changedHabit.name
-            habitTextfield.textColor = changedHabit.color
-            habitTextfield.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+            habitTextField.text = changedHabit.name
+            habitTextField.textColor = changedHabit.color
+            habitTextField.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
             colorButton.backgroundColor = changedHabit.color
             timePicker.date = changedHabit.date
             navigationItem.title = "Править"
-            removeHabitButton.isHidden = false
+            removeButton.isHidden = false
         }
         else {
-            habitTextfield.text  = ""
+            habitTextField.text  = ""
             colorButton.backgroundColor = UIColor.orangeTheme
             timePicker.date = Date()
             navigationItem.title = "Создать"
-            removeHabitButton.isHidden = true
+            removeButton.isHidden = true
         }
     }
     

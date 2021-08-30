@@ -89,7 +89,7 @@ extension HabitsViewController: UICollectionViewDataSource {
             let habitCell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: HabitCollectionViewCell.self), for: indexPath) as! HabitCollectionViewCell
             
             habitCell.habit = store.habits[indexPath.item]
-            habitCell.isChecked = { self.habitsCollectionView.reloadData() }
+            habitCell.checkMark = { self.habitsCollectionView.reloadData() }
             
             return habitCell
         }

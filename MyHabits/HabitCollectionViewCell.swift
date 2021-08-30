@@ -9,7 +9,7 @@ import UIKit
 
 class HabitCollectionViewCell: UICollectionViewCell {
 
-    var isChecked: (() -> Void)?
+    var checkMark: (() -> Void)?
     
     var habit: Habit? {
         didSet {
@@ -79,7 +79,7 @@ class HabitCollectionViewCell: UICollectionViewCell {
             habitButton.backgroundColor = self.habit?.color
             checkSetup()
             counterValueLabel.text = "\(habit.trackDates.count)"
-            if let trackHabit = isChecked {
+            if let trackHabit = checkMark {
                 trackHabit()
             }
           //print ("привычка \(habit.name) записана")
